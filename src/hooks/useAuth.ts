@@ -1,7 +1,8 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { loginUser, registerUser, logoutUser } from '@/api/auth.api'
+import { loginUser, registerUser, logoutUser, getMe, User } from '@/api/auth.api'
 import { useAuthStore } from '@/store/authStore'
+import { useEffect } from 'react'
 
 export const useLogin = () => {
   const setAuth = useAuthStore((s) => s.setAuth)
@@ -38,4 +39,22 @@ export const useLogout = () => {
       router.push('/auth')
     },
   })
+}
+
+export const useMe = () => {
+  const setAuth = useAuthStore((s) => s.setAuth)
+
+  const query = useQuery<{ user: User }>({
+    queryKey: ['me'],
+    queryFn: getMe,
+    retry: false,
+  })
+
+  useEffect(() => {
+    if (query.data?.user) {
+      setAuth(query.data.user)
+    }
+  }, [query.data, setAuth])
+
+  return query
 }
