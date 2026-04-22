@@ -15,6 +15,26 @@ export const uploadDocument = async (file: File) => {
   return data
 }
 
+export const uploadChatDocument = async (
+  chatId: string,
+  file: File
+) => {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const { data } = await api.post(
+    `/chats/${chatId}/documents`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  )
+
+  return data
+}
+
 export const getDocuments = async () => {
   const { data } = await api.get('/documents')
   return data

@@ -13,6 +13,14 @@ import {
   useDeleteDocument,
 } from '@/hooks/useDocument'
 
+type DocumentStatus = 'ready' | 'pending' | 'processing' | 'failed'
+
+type DashboardDocument = {
+  _id: string
+  originalName: string
+  status: DocumentStatus
+}
+
 export default function DashboardPage() {
   const router = useRouter()
 
@@ -144,7 +152,7 @@ export default function DashboardPage() {
             </p>
           ) : (
             <div className="grid gap-4">
-              {documents.map((doc: any) => (
+              {(documents as DashboardDocument[]).map((doc) => (
                 <div
                   key={doc._id}
                   className="bg-white p-4 rounded-lg border border-gray-200 flex justify-between items-center"

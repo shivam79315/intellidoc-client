@@ -9,7 +9,7 @@ export interface IMessage {
 export interface IChat {
   _id: string
   userId: string
-  documentId: string
+  documentIds: string[]
   title: string
   messages: IMessage[]
   createdAt: Date
@@ -25,10 +25,10 @@ export interface SendMessageResponse {
 }
 
 export const createChat = async (
-  documentId: string,
+  documentIds: string[],
   title: string
 ): Promise<CreateChatResponse> => {
-  const { data } = await api.post('/chats', { documentId, title })
+  const { data } = await api.post('/chats', { documentIds, title })
   return data
 }
 

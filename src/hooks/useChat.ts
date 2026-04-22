@@ -5,8 +5,6 @@ import {
   getChat,
   sendMessage,
   deleteChat,
-  IChat,
-  CreateChatResponse,
   SendMessageResponse,
 } from '@/api/chats.api'
 
@@ -14,8 +12,8 @@ export const useCreateChat = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ documentId, title }: { documentId: string; title: string }) =>
-      createChat(documentId, title),
+    mutationFn: ({ documentIds, title }: { documentIds: string[]; title: string }) =>
+      createChat(documentIds, title),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chats'] })
     },
