@@ -9,6 +9,7 @@ import { useSendMessage, useCreateChat } from "@/hooks/useChat";
 import { IMessage } from "@/api/chats.api";
 import { FileUploadIcon, ArrowLeft02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useUploadChatDocument } from "@/hooks/useDocument";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -18,11 +19,11 @@ export default function ChatPage() {
   const [chatId, setChatId] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const createChatMutation = useCreateChat();
+  const { mutateAsync: createChat } = useCreateChat();
   const sendMessageMutation = useSendMessage();
+  const uploadDoc = useUploadChatDocument();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,8 +35,8 @@ export default function ChatPage() {
 
     const initChat = async () => {
       try {
-        const result = await createChatMutation.mutateAsync({
-          documentId: docId,
+        const result = await createChat({
+          documentIds: [docId],
           title: `Chat - ${new Date().toLocaleString()}`,
         });
 
@@ -49,7 +50,7 @@ export default function ChatPage() {
     };
 
     initChat();
-  }, [docId, chatId]);
+  }, [docId, chatId, createChat]);
 
   const handleSendMessage = async () => {
     if (!input.trim() || !chatId || sendMessageMutation.isPending) return;
@@ -172,8 +173,19 @@ export default function ChatPage() {
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
         onConfirm={(file: File) => {
-          setSelectedFile(file)
-          setUploadOpen(false)
+          if (!chatId) return;
+
+          uploadDoc.mutate(
+            {
+              chatId,
+              file,
+            },
+            {
+              onSuccess: () => {
+                setUploadOpen(false)
+              },
+            }
+          )
         }}
       />
     </div>

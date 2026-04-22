@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   uploadDocument,
+  uploadChatDocument,
   getDocuments,
   getDocument,
   deleteDocument,
@@ -14,6 +15,32 @@ export const useUploadDocument = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['documents'],
+      })
+    },
+  })
+}
+
+export const useUploadChatDocument = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation<
+    unknown,
+    Error,
+    {
+      chatId: string
+      file: File
+    }
+  >({
+    mutationFn: ({ chatId, file }) =>
+      uploadChatDocument(chatId, file),
+
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['chat', variables.chatId],
+      })
+
+      queryClient.invalidateQueries({
+        queryKey: ['chats'],
       })
     },
   })
