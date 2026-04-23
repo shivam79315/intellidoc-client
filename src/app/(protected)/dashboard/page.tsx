@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useDropzone } from 'react-dropzone'
+import { toast } from 'sonner'
 
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/useAuth'
@@ -26,6 +27,7 @@ export default function DashboardPage() {
 
   const user = useAuthStore((state) => state.user)
   const isAuthLoading = useAuthStore((state) => state.isLoading)
+  const isAuthInitialized = useAuthStore((state) => state.isInitialized)
 
   const logout = useLogout()
   const upload = useUploadDocument()
@@ -39,10 +41,10 @@ export default function DashboardPage() {
   } = useDocuments()
 
   useEffect(() => {
-    if (!isAuthLoading && !user) {
-      router.replace('/')
+    if (isAuthInitialized && !user) {
+      router.replace('/auth')
     }
-  }, [user, isAuthLoading, router])
+  }, [user, isAuthInitialized, router])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -70,7 +72,7 @@ export default function DashboardPage() {
     })
   }
 
-  if (isAuthLoading) {
+  if (!isAuthInitialized || isAuthLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <p className="text-sm text-gray-500">Loading dashboard...</p>
@@ -84,13 +86,24 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-        <span className="font-semibold text-gray-900">Intellidocs</span>
+        <Link href="/" className="font-semibold text-gray-900">
+          Intellidocs
+        </Link>
 
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-600">{user.name}</span>
 
           <button
-            onClick={() => logout.mutate()}
+            onClick={() =>
+              logout.mutate(undefined, {
+                onSuccess: () => {
+                  toast.success('You have been logged out.')
+                },
+                onError: (error) => {
+                  toast.error(error.message || 'Logout failed. Please try again.')
+                },
+              })
+            }
             disabled={logout.isPending}
             className="text-sm text-gray-500 hover:text-gray-900 disabled:opacity-50"
           >

@@ -11,6 +11,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
+      localStorage.setItem('token', data.token)
       setAuth(data.user)
       router.push('/dashboard')
     },
@@ -35,6 +36,7 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: logoutUser,
     onSuccess: () => {
+      localStorage.removeItem('token')
       clearAuth()
       router.push('/auth')
     },
@@ -43,10 +45,17 @@ export const useLogout = () => {
 
 export const useMe = () => {
   const setAuth = useAuthStore((s) => s.setAuth)
+  const logout = useAuthStore((s) => s.logout)
+
+  const token =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('token')
+      : null
 
   const query = useQuery<{ user: User }>({
     queryKey: ['me'],
     queryFn: getMe,
+    enabled: !!token,
     retry: false,
   })
 
@@ -54,7 +63,12 @@ export const useMe = () => {
     if (query.data?.user) {
       setAuth(query.data.user)
     }
-  }, [query.data, setAuth])
+
+    if (query.isError) {
+      localStorage.removeItem('token')
+      logout()
+    }
+  }, [query.data, query.isError, logout, setAuth])
 
   return query
 }

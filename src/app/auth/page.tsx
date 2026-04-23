@@ -1,6 +1,23 @@
 'use client'
 import { useState } from 'react'
+import type { AxiosError } from 'axios'
 import { useLogin, useRegister } from '@/hooks/useAuth'
+import { toast } from 'sonner'
+
+type ApiErrorResponse = {
+  message?: string
+}
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  const apiMessage = (error as AxiosError<ApiErrorResponse>)?.response?.data
+    ?.message
+
+  if (apiMessage) return apiMessage
+
+  if (error instanceof Error && error.message) return error.message
+
+  return fallback
+}
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -16,14 +33,48 @@ export default function AuthPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (isLogin) {
-      login.mutate({ email: form.email, password: form.password })
+      login.mutate(
+        { email: form.email, password: form.password },
+        {
+          onSuccess: (data) => {
+            toast.success(`Welcome back, ${data.user.name}!`)
+          },
+          onError: (error) => {
+            toast.error(
+              getErrorMessage(error, 'Unable to sign in. Please try again.')
+            )
+          },
+        }
+      )
     } else {
-      register.mutate({ name: form.name, email: form.email, password: form.password })
+      register.mutate(
+        { name: form.name, email: form.email, password: form.password },
+        {
+          onSuccess: () => {
+            toast.success('Account created successfully. Please sign in.')
+          },
+          onError: (error) => {
+            toast.error(
+              getErrorMessage(
+                error,
+                'Unable to create your account right now.'
+              )
+            )
+          },
+        }
+      )
     }
   }
 
   const isLoading = login.isPending || register.isPending
-  const error = login.error?.message || register.error?.message
+  const error = login.error
+    ? getErrorMessage(login.error, 'Unable to sign in. Please try again.')
+    : register.error
+      ? getErrorMessage(
+          register.error,
+          'Unable to create your account right now.'
+        )
+      : null
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -88,10 +139,6 @@ export default function AuthPage() {
             className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-
-          {error && (
-            <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
-          )}
 
           <button
             type="submit"
