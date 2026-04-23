@@ -1,14 +1,38 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
+import { useCreateChat } from '@/hooks/useChat'
 
 export default function Home() {
+  const router = useRouter()
+
   const user = useAuthStore((state) => state.user)
   const isInitialized = useAuthStore((state) => state.isInitialized)
 
-  const primaryHref = !isInitialized ? '#' : user ? '/dashboard' : '/auth'
-  const primaryLabel = !isInitialized ? 'Checking session...' : 'Get Started'
+  const createChatMutation = useCreateChat()
+
+  const handleGetStarted = async () => {
+    if (!isInitialized) return
+
+    if (!user) {
+      router.push('/auth')
+      return
+    }
+
+    try {
+      const res = await createChatMutation.mutateAsync({
+        documentIds: [],
+        title: 'New Chat',
+      })
+
+      const chatId = res.data._id
+      router.push(`/chat/${chatId}`)
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
@@ -27,17 +51,17 @@ export default function Home() {
         </p>
 
         <div className="flex gap-3 justify-center">
-          <Link
-            href={primaryHref}
-            aria-disabled={!isInitialized}
-            className={`px-6 py-3 rounded-xl text-sm font-medium transition-colors ${
-              isInitialized
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-blue-300 text-white pointer-events-none'
-            }`}
+          <button
+            onClick={handleGetStarted}
+            disabled={!isInitialized || createChatMutation.isPending}
+            className="px-6 py-3 rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300"
           >
-            {primaryLabel}
-          </Link>
+            {!isInitialized
+              ? 'Checking session...'
+              : createChatMutation.isPending
+              ? 'Creating Chat...'
+              : 'Get Started'}
+          </button>
 
           {isInitialized && !user && (
             <Link
