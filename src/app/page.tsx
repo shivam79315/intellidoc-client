@@ -5,6 +5,10 @@ import { useAuthStore } from '@/store/authStore'
 
 export default function Home() {
   const user = useAuthStore((state) => state.user)
+  const isInitialized = useAuthStore((state) => state.isInitialized)
+
+  const primaryHref = !isInitialized ? '#' : user ? '/dashboard' : '/auth'
+  const primaryLabel = !isInitialized ? 'Checking session...' : 'Get Started'
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
@@ -24,13 +28,18 @@ export default function Home() {
 
         <div className="flex gap-3 justify-center">
           <Link
-            href={user ? '/dashboard' : '/auth'}
-            className="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700"
+            href={primaryHref}
+            aria-disabled={!isInitialized}
+            className={`px-6 py-3 rounded-xl text-sm font-medium transition-colors ${
+              isInitialized
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-blue-300 text-white pointer-events-none'
+            }`}
           >
-            Get Started
+            {primaryLabel}
           </Link>
 
-          {!user && (
+          {isInitialized && !user && (
             <Link
               href="/auth"
               className="px-6 py-3 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-100"
