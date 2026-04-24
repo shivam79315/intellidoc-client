@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { Accept, useDropzone } from "react-dropzone";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FileUploadIcon } from "@hugeicons/core-free-icons";
 import AppModal from "@/components/AppModal";
@@ -10,12 +10,14 @@ interface FileUploadModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (file: File) => void;
+  accept?: Accept;
 }
 
 export default function FileUploadModal({
   open,
   onClose,
   onConfirm,
+  accept,
 }: FileUploadModalProps) {
   const [file, setFile] = useState<File | null>(null);
 
@@ -28,6 +30,7 @@ export default function FileUploadModal({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: false,
+    accept,
   });
 
   const handleClose = () => {

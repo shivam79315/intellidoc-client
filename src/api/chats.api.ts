@@ -1,9 +1,18 @@
 import api from '@/lib/axios'
 
 export interface IMessage {
-  role: 'user' | 'assistant'
+  role: 'user' | 'assistant' | 'system'
   content: string
   relatedChunks?: string[]
+
+  type?: 'text' | 'document'
+
+  document?: {
+    _id: string
+    originalName: string
+    mimeType: string
+    size: number
+  }
 }
 
 export interface IChat {
@@ -12,6 +21,18 @@ export interface IChat {
   documentIds: string[]
   title: string
   messages: IMessage[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface IDocument {
+  _id: string
+  userId: string
+  originalName: string
+  fileName: string
+  mimeType: string
+  size: number
+  status?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -24,6 +45,10 @@ export interface SendMessageResponse {
   data: IChat
 }
 
+export interface GetChatDocumentsResponse {
+  data: IDocument[]
+}
+
 export const createChat = async (
   documentIds: string[],
   title: string
@@ -34,6 +59,16 @@ export const createChat = async (
 
 export const getChats = async (): Promise<{ data: IChat[] }> => {
   const { data } = await api.get('/chats')
+  return data
+}
+
+export const getChatDocuments = async (
+  chatId: string
+): Promise<GetChatDocumentsResponse> => {
+  const { data } = await api.get(
+    `/chats/${chatId}/documents`
+  )
+
   return data
 }
 
