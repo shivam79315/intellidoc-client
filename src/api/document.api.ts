@@ -2,6 +2,18 @@
 
 import api from '@/lib/axios'
 
+export interface UploadChatDocumentResponse {
+  data: {
+    chatId: string
+    document: {
+      _id: string
+      originalName: string
+      mimeType: string
+      size: number
+    }
+  }
+}
+
 export const uploadDocument = async (file: File) => {
   const formData = new FormData()
   formData.append('file', file)
@@ -18,16 +30,16 @@ export const uploadDocument = async (file: File) => {
 export const uploadChatDocument = async (
   chatId: string,
   file: File
-) => {
+): Promise<UploadChatDocumentResponse> => {
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append("file", file)
 
   const { data } = await api.post(
     `/chats/${chatId}/documents`,
     formData,
     {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }
   )

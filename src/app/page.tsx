@@ -1,38 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/store/authStore'
-import { useCreateChat } from '@/hooks/useChat'
+import { useStartChat } from '@/hooks/useChat'
 
 export default function Home() {
-  const router = useRouter()
 
-  const user = useAuthStore((state) => state.user)
-  const isInitialized = useAuthStore((state) => state.isInitialized)
-
-  const createChatMutation = useCreateChat()
-
-  const handleGetStarted = async () => {
-    if (!isInitialized) return
-
-    if (!user) {
-      router.push('/auth')
-      return
-    }
-
-    try {
-      const res = await createChatMutation.mutateAsync({
-        documentIds: [],
-        title: 'New Chat',
-      })
-
-      const chatId = res.data._id
-      router.push(`/chat/${chatId}`)
-    } catch (error) {
-      console.error(error)
-    }
-  }
+  const {
+    startChat,
+    isPending,
+    isInitialized,
+    user
+  } = useStartChat()
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
@@ -52,15 +30,18 @@ export default function Home() {
 
         <div className="flex gap-3 justify-center">
           <button
-            onClick={handleGetStarted}
-            disabled={!isInitialized || createChatMutation.isPending}
-            className="px-6 py-3 rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300"
+            onClick={startChat}
+            disabled={
+              !isInitialized ||
+              isPending
+            }
+            className="px-6 py-3 rounded-xl text-sm font-medium bg-blue-600 text-white cursor-pointer hover:bg-blue-700 disabled:bg-blue-300"
           >
             {!isInitialized
               ? 'Checking session...'
-              : createChatMutation.isPending
+              : isPending
               ? 'Creating Chat...'
-              : 'Get Started'}
+              : 'Create New Chat'}
           </button>
 
           {isInitialized && !user && (
