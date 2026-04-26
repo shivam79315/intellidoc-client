@@ -10,6 +10,7 @@ import {
   FileUploadIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { toast } from "sonner";
 
 import FileUploadModal from "@/components/chat/FileUploadModal";
 
@@ -329,65 +330,47 @@ export default function ChatPage() {
       {/* Upload */}
       <FileUploadModal
         open={uploadOpen}
-        onClose={() =>
-          setUploadOpen(
-            false
-          )
-        }
+        onClose={() => setUploadOpen(false)}
+        loading={uploadDoc.isPending}
         accept={{
-          "application/pdf":
-            [".pdf"],
-          "text/plain":
-            [".txt"],
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-            [".docx"],
+          "application/pdf": [".pdf"],
+          "text/plain": [".txt"],
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+            ".docx",
+          ],
         }}
-        onConfirm={(
-          file
-        ) => {
+        onConfirm={(file) => {
           uploadDoc.mutate(
+            { chatId, file },
             {
-              chatId,
-              file,
-            },
-            {
-              onSuccess:
-                (
-                  res
-                ) => {
-                  const doc =
-                    res
-                      .data
-                      .document;
+              onSuccess: (res) => {
+                const doc = res.data.document;
 
-                  setMessages(
-                    (
-                      prev
-                    ) => [
-                      ...prev,
-                      {
-                        role: "user",
-                        content:
-                          "",
-                        type: "document",
-                        document:
-                          {
-                            _id: doc._id,
-                            originalName:
-                              doc.originalName,
-                            mimeType:
-                              doc.mimeType,
-                            size:
-                              doc.size,
-                          },
-                      },
-                    ]
-                  );
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    role: "user",
+                    content: "",
+                    type: "document",
+                    document: {
+                      _id: doc._id,
+                      originalName: doc.originalName,
+                      mimeType: doc.mimeType,
+                      size: doc.size,
+                    },
+                  },
+                ]);
 
-                  setUploadOpen(
-                    false
-                  );
-                },
+                toast.success("File uploaded successfully");
+                setUploadOpen(false);
+              },
+
+              onError: (error: any) => {
+                toast.error(
+                  error?.response?.data?.message ||
+                    "Upload failed"
+                );
+              },
             }
           );
         }}

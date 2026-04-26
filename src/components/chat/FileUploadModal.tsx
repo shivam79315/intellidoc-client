@@ -11,6 +11,7 @@ interface FileUploadModalProps {
   onClose: () => void;
   onConfirm: (file: File) => void;
   accept?: Accept;
+  loading?: boolean;
 }
 
 export default function FileUploadModal({
@@ -18,6 +19,7 @@ export default function FileUploadModal({
   onClose,
   onConfirm,
   accept,
+  loading = false,
 }: FileUploadModalProps) {
   const [file, setFile] = useState<File | null>(null);
 
@@ -34,14 +36,14 @@ export default function FileUploadModal({
   });
 
   const handleClose = () => {
+    if (loading) return;
     setFile(null);
     onClose();
   };
 
   const handleConfirm = () => {
-    if (!file) return;
+    if (!file || loading) return;
     onConfirm(file);
-    setFile(null);
   };
 
   return (
@@ -53,6 +55,7 @@ export default function FileUploadModal({
       cancelText="Cancel"
       onCancel={handleClose}
       onConfirm={handleConfirm}
+      loading={loading}
     >
       <div
         {...getRootProps()}
