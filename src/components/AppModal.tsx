@@ -62,9 +62,13 @@ export default function AppModal({
                     <button
                     disabled={loading}
                     onClick={onConfirm}
-                    className="px-4 py-2 rounded-xl cursor-pointer bg-blue-600 text-white text-sm disabled:opacity-50"
+                    className="px-4 py-2 rounded-xl cursor-pointer bg-blue-600 text-white text-sm disabled:opacity-50 flex items-center gap-2"
                     >
-                    {loading ? 'Please wait...' : confirmText}
+                    {loading && (
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    )}
+
+                    {loading ? "Uploading..." : confirmText}
                     </button>
                 )}
                 </div>
